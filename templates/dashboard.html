@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — Smart Digital Analyzer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="dash-body">
+    <div id="toasts"></div>
+
+    <div class="layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand"><span class="brand-icon">📊</span> Smart Analyzer</div>
+            <nav>
+                <a href="#" class="nav-item active" data-section="dashboard">📈 Dashboard</a>
+                <a href="#" class="nav-item" data-section="add">➕ Add Record</a>
+                <a href="#" class="nav-item" data-section="records">📋 All Records</a>
+                <a href="#" class="nav-item" data-section="files">📁 File Storage</a>
+            </nav>
+            <a href="/logout" class="nav-item logout">🔒 Logout</a>
+        </aside>
+
+        <!-- Main -->
+        <main class="main">
+            <div class="topbar">
+                <h2 id="page-title">Dashboard</h2>
+                <div class="search-wrap">
+                    <input type="text" id="search" placeholder="🔍 Search records...">
+                </div>
+            </div>
+
+            <!-- SECTION: Dashboard -->
+            <section id="sec-dashboard" class="section active">
+                <div class="cards-row">
+                    <div class="stat-card blue">
+                        <div class="stat-label">Total Records</div>
+                        <div class="stat-value" id="s-total">0</div>
+                    </div>
+                    <div class="stat-card green">
+                        <div class="stat-label">Average</div>
+                        <div class="stat-value" id="s-avg">0</div>
+                    </div>
+                    <div class="stat-card purple">
+                        <div class="stat-label">Performance</div>
+                        <div class="stat-value" id="s-perf">0%</div>
+                    </div>
+                    <div class="stat-card orange">
+                        <div class="stat-label">Max / Min</div>
+                        <div class="stat-value"><span id="s-max">0</span> / <span id="s-min">0</span></div>
+                    </div>
+                    <div class="stat-card teal">
+                        <div class="stat-label">Stored Files</div>
+                        <div class="stat-value" id="s-files">0</div>
+                    </div>
+                </div>
+                <div class="status-banner" id="status-banner">
+                    <span id="status-dot" class="dot"></span>
+                    <span id="status-text">Loading...</span>
+                </div>
+                <div class="charts-row">
+                    <div class="chart-box"><h3>Value Trend</h3><canvas id="lineChart"></canvas></div>
+                    <div class="chart-box"><h3>Category Breakdown</h3><canvas id="doughnutChart"></canvas></div>
+                </div>
+            </section>
+
+            <!-- SECTION: Add Record -->
+            <section id="sec-add" class="section">
+                <div class="form-card">
+                    <h3>Add New Record</h3>
+                    <form id="add-form">
+                        <div class="form-field"><label>Title / Name</label><input type="text" id="f-title" placeholder="e.g. Q1 Sales, John Doe" required></div>
+                        <div class="form-field"><label>Category</label><select id="f-category"><option value="Performance">Performance</option><option value="Sales">Sales</option><option value="Attendance">Attendance</option><option value="Health">Health</option></select></div>
+                        <div class="form-field"><label>Value (Score / Amount)</label><input type="number" id="f-value" placeholder="e.g. 85" step="0.01" required></div>
+                        <div class="form-field"><label>Date</label><input type="date" id="f-date" required></div>
+                        <button type="submit" class="btn-primary">Add Record</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- SECTION: All Records -->
+            <section id="sec-records" class="section">
+                <div class="table-card">
+                    <div class="table-top"><h3>All Records</h3><button class="btn-outline" onclick="window.print()">📥 Export / Print</button></div>
+                    <table>
+                        <thead><tr><th>ID</th><th>Title</th><th>Category</th><th>Value</th><th>Date</th><th>Action</th></tr></thead>
+                        <tbody id="table-body"></tbody>
+                    </table>
+                    <p id="no-data" class="no-data" style="display:none;">No records found. Add some data!</p>
+                </div>
+            </section>
+
+            <!-- SECTION: File Storage -->
+            <section id="sec-files" class="section">
+                <div class="form-card" style="margin-bottom:1.5rem;">
+                    <h3>📤 Upload a File</h3>
+                    <form id="upload-form" enctype="multipart/form-data">
+                        <div class="form-field">
+                            <label>Select File (PDF, Image, Doc, Excel, etc.)</label>
+                            <input type="file" id="file-input" required>
+                        </div>
+                        <div class="form-field">
+                            <label>Category</label>
+                            <select id="file-category">
+                                <option value="General">General</option>
+                                <option value="Certificate">Certificate</option>
+                                <option value="ID Card">ID Card</option>
+                                <option value="Report">Report</option>
+                                <option value="Invoice">Invoice</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn-primary">Upload File</button>
+                    </form>
+                </div>
+                <div class="table-card">
+                    <div class="table-top"><h3>📁 Stored Files</h3></div>
+                    <table>
+                        <thead><tr><th>ID</th><th>File Name</th><th>Type</th><th>Size</th><th>Category</th><th>Uploaded</th><th>Actions</th></tr></thead>
+                        <tbody id="files-body"></tbody>
+                    </table>
+                    <p id="no-files" class="no-data" style="display:none;">No files uploaded yet.</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

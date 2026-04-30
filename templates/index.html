@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Digital Locker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Login Screen -->
+        <div id="login-screen" class="screen active">
+            <div class="glass-card login-card">
+                <i data-lucide="lock" class="lock-icon"></i>
+                <h2>Smart Locker</h2>
+                <p>Enter your PIN to access your vault</p>
+                <div class="pin-display">
+                    <div class="pin-dot"></div>
+                    <div class="pin-dot"></div>
+                    <div class="pin-dot"></div>
+                    <div class="pin-dot"></div>
+                </div>
+                <div class="keypad">
+                    <button class="key">1</button>
+                    <button class="key">2</button>
+                    <button class="key">3</button>
+                    <button class="key">4</button>
+                    <button class="key">5</button>
+                    <button class="key">6</button>
+                    <button class="key">7</button>
+                    <button class="key">8</button>
+                    <button class="key">9</button>
+                    <button class="key action">C</button>
+                    <button class="key">0</button>
+                    <button class="key action">OK</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Screen -->
+        <div id="dashboard-screen" class="screen">
+            <nav class="sidebar glass-card">
+                <div class="logo">
+                    <i data-lucide="shield"></i>
+                    <h2>Vault</h2>
+                </div>
+                <ul class="nav-links">
+                    <li class="active" data-view="dashboard"><i data-lucide="layout-dashboard"></i> Dashboard</li>
+                    <li data-view="documents"><i data-lucide="file-text"></i> Documents</li>
+                    <li data-view="passwords"><i data-lucide="key"></i> Passwords</li>
+                    <li data-view="notes"><i data-lucide="sticky-note"></i> Secure Notes</li>
+                </ul>
+                <div class="logout">
+                    <button id="logout-btn"><i data-lucide="log-out"></i> Lock Vault</button>
+                </div>
+            </nav>
+
+            <main class="content">
+                <header>
+                    <h1>Welcome back</h1>
+                    <button class="btn-primary" id="add-new-btn"><i data-lucide="plus"></i> Add New</button>
+                </header>
+
+                <!-- Views Container -->
+                <div id="views-container">
+                    <!-- Dashboard View -->
+                    <div id="view-dashboard" class="view active">
+                        <div class="stats-grid">
+                            <div class="stat-card glass-card">
+                                <i data-lucide="file-text" class="text-cyan"></i>
+                                <h3>Documents</h3>
+                                <p id="doc-count">0 items</p>
+                            </div>
+                            <div class="stat-card glass-card">
+                                <i data-lucide="key" class="text-purple"></i>
+                                <h3>Passwords</h3>
+                                <p id="pass-count">0 items</p>
+                            </div>
+                            <div class="stat-card glass-card">
+                                <i data-lucide="sticky-note" class="text-pink"></i>
+                                <h3>Notes</h3>
+                                <p id="note-count">0 items</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
