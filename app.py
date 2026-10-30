@@ -1,12 +1,18 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, send_from_directory
+from werkzeug.utils import secure_filename
+from werkzeug.security import check_password_hash
+from dotenv import load_dotenv
 import sqlite3
 import datetime
 import os
 import requests as http_requests
-from werkzeug.utils import secure_filename
+
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = "smart_analyzer_secret_2026"
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "").strip()
+if not app.secret_key:
+    raise RuntimeError("FLASK_SECRET_KEY is required. Copy .env.example to .env and set a private value.")
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB max upload
 
 # --- Paths ---
@@ -23,19 +29,28 @@ def allowed_file(filename):
 # =======================================================
 #  SUPABASE CONFIG — Cloud database for records
 # =======================================================
-SUPABASE_URL = "https://iuwoumlikefteftxykry.supabase.co"
-SUPABASE_KEY = "sb_secret_kOvRy0m0UxZEztUdOv4E6Q_HxIMT5Y-"
-SUPABASE_REST = f"{SUPABASE_URL}/rest/v1"
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "").strip().rstrip("/")
+SUPABASE_SECRET_KEY = os.environ.get("SUPABASE_SECRET_KEY", "").strip()
+SUPABASE_REST = f"{SUPABASE_URL}/rest/v1" if SUPABASE_URL else ""
 SUPABASE_HEADERS = {
-    "apikey": SUPABASE_KEY,
-    "Authorization": f"Bearer {SUPABASE_KEY}",
+    "apikey": SUPABASE_SECRET_KEY,
+    "Authorization": f"Bearer {SUPABASE_SECRET_KEY}",
     "Content-Type": "application/json",
-    "Prefer": "return=representation"
-}
-TIMEOUT = 8  # seconds
+    "Prefer": "return=representation",
+} if SUPABASE_URL and SUPABASE_SECRET_KEY else {}
+TIMEOUT = 8
 
-# Helper: check if Supabase is reachable
-USE_SUPABASE = True  # Set to False to fall back to SQLite only
+# Supabase is disabled unless both server-side settings are present.
+# The app falls back to its local SQLite database for development.
+USE_SUPABASE = (
+    os.environ.get("USE_SUPABASE", "true").lower() == "true"
+    and bool(SUPABASE_URL and SUPABASE_SECRET_KEY)
+)
+if not USE_SUPABASE:
+    print("[Config] Supabase is not configured; using local SQLite storage.")
+
+ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin").strip()
+ADMIN_PASSWORD_HASH = os.environ.get("ADMIN_PASSWORD_HASH", "").strip()
 
 def supa_get(table, params=""):
     """GET records from Supabase"""
@@ -145,10 +160,19 @@ def login():
     if request.method == 'POST':
         username = request.form.get('username', '')
         password = request.form.get('password', '')
-        if username == 'admin' and password == 'admin':
+        if (
+            ADMIN_PASSWORD_HASH
+            and username == ADMIN_USERNAME
+            and check_password_hash(ADMIN_PASSWORD_HASH, password)
+        ):
             session['logged_in'] = True
             return redirect(url_for('dashboard'))
-        return render_template('login.html', error="Invalid credentials. Try admin/admin")
+        if not ADMIN_PASSWORD_HASH:
+            return render_template(
+                'login.html',
+                error="Admin login is not configured. Set ADMIN_USERNAME and ADMIN_PASSWORD_HASH."
+            ), 503
+        return render_template('login.html', error="Invalid username or password.")
     return render_template('login.html')
 
 @app.route('/logout')
